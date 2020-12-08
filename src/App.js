@@ -27,7 +27,7 @@ const particlesOptions = {
 const initialState = {
   input: '',
   imageUrl: '',
-  box: {},
+  boxes: [],
   isSignedIn: false,
   user: {
     id: '',
@@ -56,22 +56,27 @@ class App extends Component {
     });
   };
 
-  calculateFaceLocation = (data) => {
-    const clarifaiFace =
-      data.outputs[0].data.regions[0].region_info.bounding_box;
+  calculateFaceLocations = (data) => {
+    const clarifaiFaces = data.outputs[0].data.regions;
     const image = document.getElementById('inputimage');
     const width = Number(image.width);
     const height = Number(image.height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - clarifaiFace.right_col * width,
-      bottomRow: height - clarifaiFace.bottom_row * height,
-    };
+
+    const faceBoxes = clarifaiFaces.map((face) => {
+      const currentBox = face.region_info.bounding_box;
+      return {
+        id: face.id,
+        leftCol: currentBox.left_col * width,
+        topRow: currentBox.top_row * height,
+        rightCol: width - currentBox.right_col * width,
+        bottomRow: height - currentBox.bottom_row * height,
+      };
+    });
+    return faceBoxes;
   };
 
-  displayFaceBox = (box) => {
-    this.setState({ box: box });
+  displayFaceBoxes = (boxes) => {
+    this.setState({ boxes: boxes });
   };
 
   onInputChange = (event) => {
@@ -95,6 +100,7 @@ class App extends Component {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               id: this.state.user.id,
+              count: response.outputs[0].data.regions.length,
             }),
           })
             .then((response) => response.json())
@@ -103,7 +109,7 @@ class App extends Component {
             })
             .catch(console.log);
         }
-        this.displayFaceBox(this.calculateFaceLocation(response));
+        this.displayFaceBoxes(this.calculateFaceLocations(response));
       })
       .catch((err) => console.log(err));
   };
@@ -117,7 +123,7 @@ class App extends Component {
   };
 
   render() {
-    const { isSignedIn, imageUrl, box } = this.state;
+    const { isSignedIn, imageUrl, boxes } = this.state;
     return (
       <div className="App">
         <Particles className="particles" params={particlesOptions} />
@@ -138,7 +144,7 @@ class App extends Component {
                   onInputChange={this.onInputChange}
                   onButtonSubmit={this.onButtonSubmit}
                 />
-                <FaceRecognition box={box} imageUrl={imageUrl} />
+                <FaceRecognition boxes={boxes} imageUrl={imageUrl} />
               </div>
             ) : (
               <Redirect to="/" />
