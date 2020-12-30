@@ -49,6 +49,44 @@ class App extends Component {
     this.state = initialState;
   }
 
+  componentDidMount() {
+    const token = window.sessionStorage.getItem('token');
+    if (token) {
+      fetch('http://localhost:3000/signin', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.id) {
+            fetch(`http://localhost:3000/profile/${data.id}`, {
+              method: 'get',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: token,
+              },
+            })
+              .then((res) => res.json())
+              .then((user) => {
+                if (user && user.email) {
+                  this.loadUser(user);
+                  this.onRouteChange('home');
+                }
+              })
+              .catch((err) => {
+                console.log('profile get lifecycle error:', err);
+              });
+          }
+        })
+        .catch((err) => {
+          console.log('signIn lifecycle error:', err);
+        });
+    }
+  }
+
   loadUser = (data) => {
     this.setState({
       user: {
@@ -64,26 +102,31 @@ class App extends Component {
   };
 
   calculateFaceLocations = (data) => {
-    const clarifaiFaces = data.outputs[0].data.regions;
-    const image = document.getElementById('inputimage');
-    const width = Number(image.width);
-    const height = Number(image.height);
+    if (data && data.outputs) {
+      const clarifaiFaces = data.outputs[0].data.regions;
+      const image = document.getElementById('inputimage');
+      const width = Number(image.width);
+      const height = Number(image.height);
 
-    const faceBoxes = clarifaiFaces.map((face) => {
-      const currentBox = face.region_info.bounding_box;
-      return {
-        id: face.id,
-        leftCol: currentBox.left_col * width,
-        topRow: currentBox.top_row * height,
-        rightCol: width - currentBox.right_col * width,
-        bottomRow: height - currentBox.bottom_row * height,
-      };
-    });
-    return faceBoxes;
+      const faceBoxes = clarifaiFaces.map((face) => {
+        const currentBox = face.region_info.bounding_box;
+        return {
+          id: face.id,
+          leftCol: currentBox.left_col * width,
+          topRow: currentBox.top_row * height,
+          rightCol: width - currentBox.right_col * width,
+          bottomRow: height - currentBox.bottom_row * height,
+        };
+      });
+      return faceBoxes;
+    }
+    return;
   };
 
   displayFaceBoxes = (boxes) => {
-    this.setState({ boxes: boxes });
+    if (boxes) {
+      this.setState({ boxes: boxes });
+    }
   };
 
   onInputChange = (event) => {
@@ -94,7 +137,10 @@ class App extends Component {
     this.setState({ imageUrl: this.state.input });
     fetch('http://localhost:3000/imageurl', {
       method: 'post',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: window.sessionStorage.getItem('token'),
+      },
       body: JSON.stringify({
         input: this.state.input,
       }),
@@ -104,10 +150,13 @@ class App extends Component {
         if (response) {
           fetch('http://localhost:3000/image', {
             method: 'put',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: window.sessionStorage.getItem('token'),
+            },
             body: JSON.stringify({
               id: this.state.user.id,
-              count: response.outputs[0].data.regions.length,
+              count: response.outputs ? response.outputs[0].data.regions.length : 0,
             }),
           })
             .then((response) => response.json())
@@ -123,6 +172,7 @@ class App extends Component {
 
   onRouteChange = (route) => {
     if (route === 'signout') {
+      window.sessionStorage.removeItem('token');
       this.setState(initialState);
     } else if (route === 'home') {
       this.setState({ isSignedIn: true });
@@ -152,6 +202,7 @@ class App extends Component {
               isProfileOpen={isProfileOpen}
               toggleModal={this.toggleModal}
               loadUser={this.loadUser}
+              onRouteChange={this.onRouteChange}
               user={user}
             />
           </Modal>
@@ -182,10 +233,25 @@ class App extends Component {
             />
           </Route>
           <Route path="/">
-            <Signin
-              loadUser={this.loadUser}
-              onRouteChange={this.onRouteChange}
-            />
+            {!isSignedIn ? (
+              <Signin
+                loadUser={this.loadUser}
+                onRouteChange={this.onRouteChange}
+              />
+            ) : (
+              <div>
+                <Logo />
+                <Rank
+                  name={this.state.user.name}
+                  entries={this.state.user.entries}
+                />
+                <ImageLinkForm
+                  onInputChange={this.onInputChange}
+                  onButtonSubmit={this.onButtonSubmit}
+                />
+                <FaceRecognition boxes={boxes} imageUrl={imageUrl} />
+              </div>
+            )}
           </Route>
         </Switch>
       </div>

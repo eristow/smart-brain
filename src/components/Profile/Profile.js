@@ -39,15 +39,18 @@ const Profile = ({ isProfileOpen, toggleModal, loadUser, user }) => {
       data.pet = user.pet;
     }
 
-    await fetch(`http://localhost:3000/profile/${user.id}`, {
+    const res = await fetch(`http://localhost:3000/profile/${user.id}`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: window.sessionStorage.getItem('token'),
       },
       body: JSON.stringify({ formInput: data }),
     });
-    toggleModal();
-    loadUser({ ...user, ...data });
+    if (res.status === 200 || res.status === 304) {
+      toggleModal();
+      loadUser({ ...user, ...data });
+    }
   };
 
   return (

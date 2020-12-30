@@ -25,6 +25,10 @@ class Register extends React.Component {
     this.setState({ password: event.target.value });
   };
 
+  saveAuthTokenInSession = (token) => {
+    window.sessionStorage.setItem('token', token);
+  };
+
   onSubmitSignIn = () => {
     fetch('http://localhost:3000/register', {
       method: 'post',
@@ -37,10 +41,44 @@ class Register extends React.Component {
     })
       .then((response) => response.json())
       .then((user) => {
+        console.log('register:', user)
         if (user.id) {
-          this.props.loadUser(user);
-          this.props.onRouteChange('home');
+          // this.props.loadUser(user);
+          // this.props.onRouteChange('home');
+          // this.setState({ shouldRedirect: true });
+    fetch('http://localhost:3000/signin', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: this.state.email,
+        password: this.state.password,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.userId && data.success === 'true') {
+          this.saveAuthTokenInSession(data.token);
+          fetch(`http://localhost:3000/profile/${data.userId}`, {
+            method: 'get',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: data.token,
+            },
+          })
+            .then((res) => res.json())
+            .then((user) => {
+              console.log('signin:', user);
+              if (user && user.email) {
+                this.props.loadUser(user);
+                this.props.onRouteChange('home');
+              }
+            })
+            .catch((err) => {
+              console.log('profile get lifecycle error:', err);
+            });
           this.setState({ shouldRedirect: true });
+        }
+      });
         }
       });
   };
