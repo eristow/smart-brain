@@ -120,8 +120,8 @@ const App = () => {
             headers: {
               'Content-Type': 'application/json',
               ...(token
-                ? { Authorization: token }
-                : { Authorization: signInData.token }),
+                ? { Authorization: `bearer ${token}` }
+                : { Authorization: `bearer ${signInData.token}` }),
             },
           }
         );

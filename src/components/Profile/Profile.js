@@ -43,7 +43,7 @@ const Profile = ({ isProfileOpen, toggleModal, loadUser, user }) => {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: window.sessionStorage.getItem('token'),
+        Authorization: `bearer ${window.sessionStorage.getItem('token')}`,
       },
       body: JSON.stringify({ formInput: data }),
     });

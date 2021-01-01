@@ -15,8 +15,8 @@ const Signin = ({ handleSignIn }) => {
     setPassword(event.target.value);
   };
 
-  const onSubmitSignIn = async () => {
-    await handleSignIn(email, password);
+  const onSubmitSignIn = () => {
+    handleSignIn(email, password);
     setShouldRedirect(true);
   };
 
