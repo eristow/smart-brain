@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
-import Logo from '../Logo/Logo';
-import Rank from '../Rank/Rank';
-import ImageLinkForm from '../ImageLinkForm/ImageLinkForm';
-import FaceRecognition from '../FaceRecognition/FaceRecognition';
+import Logo from '../../components/Logo/Logo';
+import Rank from '../../components/Rank/Rank';
+import ImageLinkForm from '../../components/ImageLinkForm/ImageLinkForm';
+import FaceRecognition from '../../components/FaceRecognition/FaceRecognition';
 
 const Home = ({ user, setCount }) => {
   const [input, setInput] = useState('');

@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Particles from 'react-particles-js';
 import { Switch, Route, Redirect } from 'react-router-dom';
 
-import Navigation from './components/Navigation/Navigation';
-import Signin from './components/Signin/Signin';
-import Register from './components/Register/Register';
+import Navigation from './Containers/Navigation/Navigation';
+import Signin from './Containers/Signin/Signin';
+import Register from './Containers/Register/Register';
 import Modal from './components/Modal/Modal';
-import Profile from './components/Profile/Profile';
-import Home from './components/Home/Home';
+import Profile from './Containers/Profile/Profile';
+import Home from './Containers/Home/Home';
 import Spinner from './components/Spinner/Spinner';
+import ErrorModal from './components/ErrorModal/ErrorModal';
 import './App.css';
 
 const particlesOptions = {
@@ -39,6 +40,8 @@ const App = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isErrorOpen, setIsErrorOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const signInWithToken = async () => {
@@ -83,6 +86,13 @@ const App = () => {
     setIsProfileOpen(!isProfileOpen);
   };
 
+  const toggleError = () => {
+    if (isErrorOpen) {
+      setErrorMessage('');
+    }
+    setIsErrorOpen(!isErrorOpen);
+  };
+
   const saveAuthTokenInSession = (token) => {
     window.sessionStorage.setItem('token', token);
   };
@@ -105,6 +115,11 @@ const App = () => {
             password: signInPassword,
           }),
     });
+
+    if (!signInRes.ok) {
+      setErrorMessage('There was an error signing in. Try again.');
+      toggleError();
+    }
 
     const signInData = await signInRes.json();
 
@@ -145,14 +160,20 @@ const App = () => {
           onRouteChange={onRouteChange}
           toggleModal={toggleModal}
         />
+        {isErrorOpen && (
+          <Modal>
+            <ErrorModal errorMessage={errorMessage} toggleError={toggleError} />
+          </Modal>
+        )}
         {isProfileOpen && (
           <Modal>
             <Profile
-              isProfileOpen={isProfileOpen}
               toggleModal={toggleModal}
               loadUser={loadUser}
               onRouteChange={onRouteChange}
               user={user}
+              setErrorMessage={setErrorMessage}
+              toggleError={toggleError}
             />
           </Modal>
         )}
@@ -165,7 +186,11 @@ const App = () => {
             )}
           </Route>
           <Route path="/register">
-            <Register handleSignIn={handleSignIn} />
+            <Register
+              handleSignIn={handleSignIn}
+              setErrorMessage={setErrorMessage}
+              toggleError={toggleError}
+            />
           </Route>
           <Route path="/">
             {isSignedIn ? (

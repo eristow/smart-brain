@@ -3,7 +3,9 @@ import { Redirect } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 
 import './Signin.css';
-import ErrorSummary from '../ErrorSummary/ErrorSummary';
+import ErrorSummary from '../../components/ErrorSummary/ErrorSummary';
+import Input from '../../components/Input/Input';
+import Button from '../../components/Button/Button';
 
 const Signin = ({ handleSignIn }) => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -22,43 +24,28 @@ const Signin = ({ handleSignIn }) => {
             <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
               <legend className="f1 fw6 ph0 mh0">Sign In</legend>
               <div className="mt3">
-                <label className="db fw6 lh-copy f6" htmlFor="email">
-                  Email
-                </label>
-                <input
-                  className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100 hover-black"
+                <Input
+                  label="Email"
                   type="email"
-                  name="email"
                   id="email"
-                  ref={register({
-                    required: { value: true, message: 'Email is required' },
-                  })}
+                  required
+                  register={register}
                 />
               </div>
               <div className="mv3">
-                <label className="db fw6 lh-copy f6" htmlFor="password">
-                  Password
-                </label>
-                <input
-                  className="b pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100 hover-black"
+                <Input
+                  label="Password"
                   type="password"
-                  name="password"
                   id="password"
-                  ref={register({
-                    required: { value: true, message: 'Password is required' },
-                  })}
+                  required
+                  register={register}
                 />
               </div>
+              <ErrorSummary errors={errors} />
             </fieldset>
-            <div className="">
-              <input
-                // onClick={handleSubmit(onSubmitSignIn)}
-                className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib"
-                type="submit"
-                value="Sign in"
-              />
+            <div>
+              <Button label="Sign In" type="submit" />
             </div>
-            <ErrorSummary errors={errors} />
           </form>
         </div>
       </main>
