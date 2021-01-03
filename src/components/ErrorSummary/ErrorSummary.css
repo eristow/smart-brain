@@ -1,0 +1,8 @@
+.error-summary {
+  margin-top: 10px;
+  padding: 5px;
+  border: 1px solid #0000;
+  border-radius: 3px;
+  color: red;
+  background: #000a;
+}
