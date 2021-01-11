@@ -8,6 +8,7 @@ const Input = ({
   required,
   register,
   onProfile,
+  imageUpload,
 }) => {
   return (
     <>
@@ -24,6 +25,7 @@ const Input = ({
         name={id}
         id={id}
         placeholder={placeholder}
+        accept={imageUpload ? 'image/*' : undefined}
         ref={register({
           ...(required && {
             required: { value: true, message: `${label} is required` },

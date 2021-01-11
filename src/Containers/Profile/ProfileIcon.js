@@ -7,7 +7,7 @@ import {
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
 
-const ProfileIcon = ({ onRouteChange, toggleModal }) => {
+const ProfileIcon = ({ onRouteChange, toggleModal, profilePic }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const toggle = () => setDropdownOpen((prevState) => !prevState);
@@ -20,11 +20,7 @@ const ProfileIcon = ({ onRouteChange, toggleModal }) => {
           data-toggle="dropdown"
           aria-expanded={dropdownOpen}
         >
-          <img
-            src="http://tachyons.io/img/logo.jpg"
-            className="br-100 ba h3 w3 dib"
-            alt="avatar"
-          />
+          <img src={profilePic} className="br-100 ba h3 w3 dib" alt="avatar" />
         </DropdownToggle>
         <DropdownMenu
           className="b--transparent shadow-5"

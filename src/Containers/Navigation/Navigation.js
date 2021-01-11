@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import ProfileIcon from '../Profile/ProfileIcon';
 
-const Navigation = ({ onRouteChange, isSignedIn, toggleModal }) => {
+const Navigation = ({ onRouteChange, isSignedIn, toggleModal, profilePic }) => {
   if (isSignedIn) {
     return (
       <nav style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -11,6 +11,7 @@ const Navigation = ({ onRouteChange, isSignedIn, toggleModal }) => {
           style={{ cursor: 'pointer' }}
           onRouteChange={onRouteChange}
           toggleModal={toggleModal}
+          profilePic={profilePic}
         />
       </nav>
     );

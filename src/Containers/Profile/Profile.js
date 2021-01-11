@@ -12,6 +12,7 @@ const Profile = ({
   user,
   setErrorMessage,
   toggleError,
+  profilePic,
 }) => {
   const { register, errors, handleSubmit } = useForm();
 
@@ -24,6 +25,33 @@ const Profile = ({
     }
     if (data.pet === '') {
       data.pet = user.pet;
+    }
+
+    if (data.profilePic !== '') {
+      const imageUrl = data.profilePic;
+
+      const profilePicRes = await fetch(
+        `https://fn5rmn7o9l.execute-api.us-east-1.amazonaws.com/profileSet`,
+        {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageUrl,
+            key: `${user.id}_profile_pic.png`,
+          }),
+        }
+      );
+
+      if (!profilePicRes.ok) {
+        setErrorMessage('There was an error with your profile pic. Try again.');
+        toggleError();
+      }
+
+      if (profilePicRes.status === 200 || profilePicRes.status === 304) {
+        toggleModal();
+      }
     }
 
     const profileRes = await fetch(`http://localhost:3000/profile/${user.id}`, {
@@ -50,11 +78,7 @@ const Profile = ({
     <div className="profile-modal">
       <article className="br3 ba b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-5 center bg-white">
         <main className="pa4 black-80 w-80">
-          <img
-            src="http://tachyons.io/img/logo.jpg"
-            className="h3 w3 dib"
-            alt="avatar"
-          />
+          <img src={profilePic} className="h3 w3 dib" alt="avatar" />
           <h1>{user.name}</h1>
           <h4>{`Images Submitted: ${user.entries}`}</h4>
           <p>{`Member Since: ${new Date(user.joined).toLocaleDateString()}`}</p>
@@ -81,6 +105,15 @@ const Profile = ({
               type="text"
               id="pet"
               placeholder={user.pet}
+              register={register}
+              onProfile
+            />
+            <hr />
+            <Input
+              label="Profile Picture"
+              type="text"
+              id="profilePic"
+              placeholder="image url"
               register={register}
               onProfile
             />

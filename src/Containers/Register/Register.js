@@ -29,8 +29,30 @@ const Register = ({ handleSignIn, setErrorMessage, toggleError }) => {
 
     const user = await registerRes.json();
     if (user.id) {
-      await handleSignIn(data.email, data.password);
-      setShouldRedirect(true);
+      const profilePicRes = await fetch(
+        `https://fn5rmn7o9l.execute-api.us-east-1.amazonaws.com/profileSet`,
+        {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageUrl:
+              'https://thumbs.dreamstime.com/b/default-avatar-profile-image-vector-social-media-user-icon-potrait-182347582.jpg',
+            key: `${user.id}_profile_pic.png`,
+          }),
+        }
+      );
+
+      if (!profilePicRes.ok) {
+        setErrorMessage('There was an error with your profile pic. Try again.');
+        toggleError();
+      }
+
+      if (profilePicRes.status === 200 || profilePicRes.status === 304) {
+        await handleSignIn(data.email, data.password);
+        setShouldRedirect(true);
+      }
     }
   };
 

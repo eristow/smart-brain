@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Particles from 'react-particles-js';
 import { Switch, Route, Redirect } from 'react-router-dom';
+import AWS from 'aws-sdk';
 
 import Navigation from './Containers/Navigation/Navigation';
 import Signin from './Containers/Signin/Signin';
@@ -11,6 +12,20 @@ import Home from './Containers/Home/Home';
 import Spinner from './components/Spinner/Spinner';
 import ErrorModal from './components/ErrorModal/ErrorModal';
 import './App.css';
+
+AWS.config.update({
+  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY,
+  secretAccessKey: process.env.REACT_APP_AWS_SECRET,
+});
+
+const s3 = new AWS.S3();
+
+const encode = (data) => {
+  var str = data.reduce(function (a, b) {
+    return a + String.fromCharCode(b);
+  }, '');
+  return btoa(str).replace(/.{76}(?=.)/g, '$&\n');
+};
 
 const particlesOptions = {
   // customize this to your liking
@@ -42,6 +57,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isErrorOpen, setIsErrorOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [profilePic, setProfilePic] = useState('');
 
   useEffect(() => {
     const signInWithToken = async () => {
@@ -77,6 +93,7 @@ const App = () => {
       setUser(initialUserData);
       setIsProfileOpen(false);
       setIsSignedIn(false);
+      setProfilePic('');
     } else if (route === 'home') {
       setIsSignedIn(true);
     }
@@ -95,6 +112,19 @@ const App = () => {
 
   const saveAuthTokenInSession = (token) => {
     window.sessionStorage.setItem('token', token);
+  };
+
+  const getProfilePic = (userId) => {
+    s3.getObject(
+      { Bucket: 'smart-brain-profile-pic', Key: `${userId}_profile_pic.png` },
+      (err, data) => {
+        if (err) {
+          console.log('profile pic err:', err);
+        } else {
+          setProfilePic(`data:image/jpeg;base64,${encode(data.Body)}`);
+        }
+      }
+    );
   };
 
   const handleSignIn = async (
@@ -143,6 +173,7 @@ const App = () => {
         const user = await profileRes.json();
         if (user && user.email) {
           loadUser(user);
+          getProfilePic(user.id);
           onRouteChange('home');
         }
       } catch (err) {
@@ -159,6 +190,7 @@ const App = () => {
           isSignedIn={isSignedIn}
           onRouteChange={onRouteChange}
           toggleModal={toggleModal}
+          profilePic={profilePic}
         />
         {isErrorOpen && (
           <Modal>
@@ -174,6 +206,7 @@ const App = () => {
               user={user}
               setErrorMessage={setErrorMessage}
               toggleError={toggleError}
+              profilePic={profilePic}
             />
           </Modal>
         )}
